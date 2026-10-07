@@ -1,106 +1,78 @@
-import data from './services/datos.js'
-
-
-function getBookById(id) {
-  return data.books.find(book => book.id === id)
+export function getBookById(books, bookId) {
+  const book = books.find((item) => item.id === bookId)
+  if (!book) throw new Error('Libro no encontrado')
+  return book
 }
 
-
-function getBookIndexById(id) {
-  return data.books.findIndex(book => book.id === id)
+export function getBookIndexById(books, bookId) {
+  const index = books.findIndex((item) => item.id === bookId)
+  if (index === -1) throw new Error('Libro no encontrado')
+  return index
 }
 
-
-function bookExists(id) {
-  return data.books.some(book => book.id === id)
+export function bookExists(books, userId, moduleCode) {
+  return books.some((book) => book.userId === userId && book.moduleCode === moduleCode)
 }
 
-
-function booksFromUser(userId) {
-  return data.books.filter(book => book.userId === userId)
+export function booksFromUser(books, userId) {
+  return books.filter((book) => book.userId === userId)
 }
 
-
-function booksFromModule(moduleCode) {
-  return data.books.filter(book => book.moduleCode === moduleCode)
+export function booksFromModule(books, moduleCode) {
+  return books.filter((book) => book.moduleCode === moduleCode)
 }
 
-
-function booksCheeperThan(price) {
-  return data.books.filter(book => book.price < price)
+export function booksCheeperThan(books, price) {
+  return books.filter((book) => book.price <= price)
 }
 
-
-function booksWithStatus(status) {
-  return data.books.filter(book => book.status === status)
+export function booksWithStatus(books, status) {
+  return books.filter((book) => book.status === status)
 }
 
-
-function averagePriceOfBooks() {
-  if (data.books.length === 0) {
-    return 0
-  }
-
-  const total = data.books.reduce((total, book) => total + book.price, 0)
-
-  return total / data.books.length
+export function averagePriceOfBooks(books) {
+  if (books.length === 0) return '0.00 €'
+  const total = books.reduce((sum, book) => sum + Number(book.price), 0)
+  return `${(total / books.length).toFixed(2)} €`
 }
 
-
-function booksOfTypeNotes() {
-  return data.books.filter(book => book.publisher === 'Apunts')
+export function booksOfTypeNotes(books) {
+  return books.filter((book) => book.publisher === 'Apunts')
 }
 
-
-function booksNotSold() {
-  return data.books.filter(book => book.soldDate === '')
+export function booksNotSold(books) {
+  return books.filter((book) => book.soldDate === '')
 }
 
-
-function incrementPriceOfbooks(percent = 10) {
-  return data.books.map(book => {
+export function incrementPriceOfbooks(books, percentage) {
+  return books.map((book) => {
     return {
       ...book,
-      price: book.price + book.price * percent / 100
+      price: Number((book.price * (1 + percentage)).toFixed(2)),
     }
   })
 }
 
-
-function getUserById(id) {
-  return data.users.find(user => user.id === id)
+export function getUserById(users, userId) {
+  const user = users.find((item) => item.id === userId)
+  if (!user) throw new Error('Usuario no encontrado')
+  return user
 }
 
-
-function getUserIndexById(id) {
-  return data.users.findIndex(user => user.id === id)
+export function getUserIndexById(users, userId) {
+  const index = users.findIndex((item) => item.id === userId)
+  if (index === -1) throw new Error('Usuario no encontrado')
+  return index
 }
 
-
-function getUserByNickName(nick) {
-  return data.users.find(user => user.nick === nick)
+export function getUserByNickName(users, nick) {
+  const user = users.find((item) => item.nick === nick)
+  if (!user) throw new Error('Usuario no encontrado')
+  return user
 }
 
-
-function getModuleByCode(code) {
-  return data.modules.find(module => module.code === code)
-}
-
-
-export {
-  getBookById,
-  getBookIndexById,
-  bookExists,
-  booksFromUser,
-  booksFromModule,
-  booksCheeperThan,
-  booksWithStatus,
-  averagePriceOfBooks,
-  booksOfTypeNotes,
-  booksNotSold,
-  incrementPriceOfbooks,
-  getUserById,
-  getUserIndexById,
-  getUserByNickName,
-  getModuleByCode,
+export function getModuleByCode(modules, moduleCode) {
+  const module = modules.find((item) => item.code === moduleCode)
+  if (!module) throw new Error('Módulo no encontrado')
+  return module
 }
