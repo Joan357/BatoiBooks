@@ -1,48 +1,23 @@
 import Module from './module.class.js'
+import { getDBModules } from '../services/modules.api.js'
 
 export default class Modules {
   constructor() {
     this.data = []
   }
 
-  populate(items) {
+  async populate() {
+    const items = await getDBModules()
     this.data = items.map((item) => {
       return new Module(item.code, item.cliteral, item.vliteral, item.courseId)
     })
-  }
-
-  addModule(moduleData) {
-    const module = new Module(
-      moduleData.code,
-      moduleData.cliteral,
-      moduleData.vliteral,
-      moduleData.courseId,
-    )
-    this.data.push(module)
-    return module
-  }
-
-  removeModule(code) {
-    const index = this.data.findIndex((module) => module.code === code)
-    if (index === -1) throw new Error('Módulo no encontrado')
-    this.data.splice(index, 1)
-  }
-
-  changeModule(moduleData) {
-    const index = this.data.findIndex((module) => module.code === moduleData.code)
-    if (index === -1) throw new Error('Módulo no encontrado')
-    const module = new Module(
-      moduleData.code,
-      moduleData.cliteral,
-      moduleData.vliteral,
-      moduleData.courseId,
-    )
-    this.data[index] = module
-    return module
+    return this.data
   }
 
   getModuleByCode(code) {
-    return this.data.find((module) => module.code === code)
+    const module = this.data.find((item) => item.code === code)
+    if (!module) throw new Error('Módulo no encontrado')
+    return module
   }
 
   toString() {

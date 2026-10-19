@@ -1,41 +1,53 @@
 import Book from './book.class.js'
+import {
+  addDBBook,
+  changeDBBook,
+  getDBBooks,
+  removeDBBook,
+} from '../services/books.api.js'
 
 export default class Books {
   constructor() {
     this.data = []
   }
 
-  populate(items) {
+  async populate() {
+    const items = await getDBBooks()
     this.data = items.map((item) => new Book(item))
+    return this.data
   }
 
-  addBook(bookData) {
-    const lastId = this.data.reduce((max, book) => Math.max(max, book.id), 0)
-    const book = new Book({ ...bookData, id: lastId + 1 })
+  async addBook(bookData) {
+    const savedBook = await addDBBook(bookData)
+    const book = new Book(savedBook)
     this.data.push(book)
     return book
   }
 
-  removeBook(id) {
-    const index = this.data.findIndex((book) => book.id === id)
-    if (index === -1) throw new Error('Libro no encontrado')
+  async removeBook(id) {
+    const index = this.getBookIndexById(id)
+    await removeDBBook(id)
     this.data.splice(index, 1)
   }
 
-  changeBook(bookData) {
-    const index = this.data.findIndex((book) => book.id === bookData.id)
-    if (index === -1) throw new Error('Libro no encontrado')
-    const book = new Book(bookData)
+  async changeBook(bookData) {
+    const index = this.getBookIndexById(bookData.id)
+    const savedBook = await changeDBBook(bookData)
+    const book = new Book(savedBook)
     this.data[index] = book
     return book
   }
 
   getBookById(id) {
-    return this.data.find((book) => book.id === id)
+    const book = this.data.find((item) => item.id === id)
+    if (!book) throw new Error('Libro no encontrado')
+    return book
   }
 
   getBookIndexById(id) {
-    return this.data.findIndex((book) => book.id === id)
+    const index = this.data.findIndex((book) => book.id === id)
+    if (index === -1) throw new Error('Libro no encontrado')
+    return index
   }
 
   booksFromUser(userId) {
@@ -66,15 +78,6 @@ export default class Books {
     if (!this.data.length) return '0.00 €'
     const total = this.data.reduce((sum, book) => sum + book.price, 0)
     return `${(total / this.data.length).toFixed(2)} €`
-  }
-
-  incrementPriceOfbooks(percentage) {
-    return this.data.map((book) => {
-      return new Book({
-        ...book,
-        price: Number((book.price * (1 + percentage)).toFixed(2)),
-      })
-    })
   }
 
   toString() {

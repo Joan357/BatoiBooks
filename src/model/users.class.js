@@ -1,45 +1,68 @@
 import User from './user.class.js'
+import {
+  addDBUser,
+  changeDBUser,
+  changeDBUserPassword,
+  getDBUsers,
+  removeDBUser,
+} from '../services/users.api.js'
 
 export default class Users {
   constructor() {
     this.data = []
   }
 
-  populate(items) {
+  async populate() {
+    const items = await getDBUsers()
     this.data = items.map((item) => new User(item.id, item.nick, item.email, item.password))
+    return this.data
   }
 
-  addUser(userData) {
-    const lastId = this.data.reduce((max, user) => Math.max(max, user.id), 0)
-    const user = new User(lastId + 1, userData.nick, userData.email, userData.password)
+  async addUser(userData) {
+    const savedUser = await addDBUser(userData)
+    const user = new User(savedUser.id, savedUser.nick, savedUser.email, savedUser.password)
     this.data.push(user)
     return user
   }
 
-  removeUser(id) {
-    const index = this.data.findIndex((user) => user.id === id)
-    if (index === -1) throw new Error('Usuario no encontrado')
+  async removeUser(id) {
+    const index = this.getUserIndexById(id)
+    await removeDBUser(id)
     this.data.splice(index, 1)
   }
 
-  changeUser(userData) {
-    const index = this.data.findIndex((user) => user.id === userData.id)
-    if (index === -1) throw new Error('Usuario no encontrado')
-    const user = new User(userData.id, userData.nick, userData.email, userData.password)
+  async changeUser(userData) {
+    const index = this.getUserIndexById(userData.id)
+    const savedUser = await changeDBUser(userData)
+    const user = new User(savedUser.id, savedUser.nick, savedUser.email, savedUser.password)
+    this.data[index] = user
+    return user
+  }
+
+  async changeUserPassword(id, password) {
+    const index = this.getUserIndexById(id)
+    const savedUser = await changeDBUserPassword(id, password)
+    const user = new User(savedUser.id, savedUser.nick, savedUser.email, savedUser.password)
     this.data[index] = user
     return user
   }
 
   getUserById(id) {
-    return this.data.find((user) => user.id === id)
+    const user = this.data.find((item) => item.id === id)
+    if (!user) throw new Error('Usuario no encontrado')
+    return user
   }
 
   getUserIndexById(id) {
-    return this.data.findIndex((user) => user.id === id)
+    const index = this.data.findIndex((user) => user.id === id)
+    if (index === -1) throw new Error('Usuario no encontrado')
+    return index
   }
 
   getUserByNick(nick) {
-    return this.data.find((user) => user.nick === nick)
+    const user = this.data.find((item) => item.nick === nick)
+    if (!user) throw new Error('Usuario no encontrado')
+    return user
   }
 
   getUserByNickName(nick) {
