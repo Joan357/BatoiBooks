@@ -1,10 +1,27 @@
-import { describe, expect, test } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest'
+import { http, HttpResponse } from 'msw'
+import { setupServer } from 'msw/node'
 import Book from '../src/model/book.class.js'
 import Books from '../src/model/books.class.js'
 import Module from '../src/model/module.class.js'
 import Modules from '../src/model/modules.class.js'
 import User from '../src/model/user.class.js'
 import Users from '../src/model/users.class.js'
+
+const API_URL = 'http://localhost:3000'
+const server = setupServer(
+  http.get(`${API_URL}/users/:id`, ({ params }) => {
+    if (params.id === '2') {
+      return HttpResponse.json({ id: 2, nick: 'Ignasi', email: 'ignasi@example.com', password: '1234' })
+    }
+    return HttpResponse.json({}, { status: 404 })
+  }),
+)
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
+beforeEach(() => server.resetHandlers())
 
 const bookData = [
   {
@@ -70,24 +87,24 @@ describe('Consultas de Books', () => {
 })
 
 describe('Consultas de Users y Modules', () => {
-  test('Users busca por id, índice y nick', () => {
+  test('Users busca por id en el servidor, índice y nick', async () => {
     const users = new Users()
     users.data = [
       new User(2, 'Ignasi', 'ignasi@example.com', '1234'),
       new User(3, 'Juan', 'juan@example.com', '1234'),
     ]
 
-    expect(users.getUserById(2).nick).toBe('Ignasi')
+    expect((await users.getUserById(2)).nick).toBe('Ignasi')
     expect(users.getUserIndexById(3)).toBe(1)
     expect(users.getUserByNick('Juan').id).toBe(3)
     expect(users.getUserByNickName('Juan').id).toBe(3)
     expect(users.toString()).toContain('Ignasi')
   })
 
-  test('Users lanza errores si no encuentra un usuario', () => {
+  test('Users rechaza la promesa si no encuentra un usuario', async () => {
     const users = new Users()
 
-    expect(() => users.getUserById(99)).toThrow('Usuario no encontrado')
+    await expect(users.getUserById(99)).rejects.toThrow('Error en la petición: 404')
     expect(() => users.getUserIndexById(99)).toThrow('Usuario no encontrado')
     expect(() => users.getUserByNickName('Desconocido')).toThrow('Usuario no encontrado')
   })

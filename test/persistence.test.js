@@ -154,9 +154,9 @@ describe('Clases persistentes', () => {
     expect(() => books.getBookById(book.id)).toThrow('Libro no encontrado')
     const user = await users.addUser({ nick: 'Ana', email: 'ana@example.com', password: '1234' })
     await users.changeUserPassword(user.id, 'nueva')
-    expect(users.getUserById(user.id).password).toBe('nueva')
+    expect((await users.getUserById(user.id)).password).toBe('nueva')
     await users.removeUser(user.id)
-    expect(() => users.getUserById(user.id)).toThrow('Usuario no encontrado')
+    await expect(users.getUserById(user.id)).rejects.toThrow('Error en la petición: 404')
   })
 
   test('no cambia la colección local si la API rechaza una operación', async () => {
